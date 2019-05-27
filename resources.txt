@@ -1,0 +1,5 @@
+Resources used in this project:
+
+
+- RSA Algorithm:
+	https://simple.wikipedia.org/wiki/RSA_algorithm
