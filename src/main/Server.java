@@ -59,13 +59,18 @@ public class Server {
 			@Override
 			public void run() {
 				try {
+					
 					FileOutputStream fileOut = new FileOutputStream(Server.this.accountsFile);
 					ObjectOutputStream out = new ObjectOutputStream(fileOut);
 
+					System.out.println("Saving accounts file...");
+					
 					out.writeObject(Server.this.REGISTERED_ACCOUNTS);
 
 					out.close();
 					fileOut.close();
+					
+					System.out.println("Successfully saved accounts file!");
 				} catch (IOException e) {
 					e.printStackTrace();
 				}

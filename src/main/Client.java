@@ -3,24 +3,33 @@ package main;
 import java.io.IOException;
 import java.net.Socket;
 
+import encryption.RSA;
+import encryption.SHA256;
 import io.Communication;
 
 public class Client {
 
-	// GOAL FOR CURRENT: finish basic challenge stuff
-
 	public Communication lobbyServComm;
+	
+	private RSA myRSA;
+	private RSA servRSA;
 
-	public long randomSeed;
+	private String serverIP;
+	private String username;
+	private String password;
 
-	public String serverIP;
-	public String name;
-	public String password;
+	private boolean connectedToServer;
+	private boolean loggedInToServer;
 
-	public Client(String serverIP, String name, String password) {
+	public Thread commandThread;
+
+	public Client(String serverIP, String username, String password) {
 		this.serverIP = serverIP;
-		this.name = name;
+		this.username = username;
 		this.password = password;
+
+		connectedToServer = false;
+		loggedInToServer = false;
 	}
 
 	public static void main(String... args) {
@@ -46,13 +55,43 @@ public class Client {
 			password = Main.getStringInput();
 		}
 		Client client = new Client(serverIP, name, password);
-		client.start();
+		client.startClient();
 	}
 
-	public void start() {
+	public void startClient() {
+		this.commandThread = Thread.currentThread();
+
+		String inp = "";
+		do {
+			if (inp.equals("help")) {
+				System.out.println("listserver");
+				System.out.println("server [new server]");
+				System.out.println("connect");
+				System.out.println("disconnect");
+				System.out.println("listusername");
+				System.out.println("username [new username]");
+				System.out.println("password [new password]");
+				System.out.println("help");
+				System.out.println("exit");
+			} else if (inp.equals("listserver")) {
+
+			} else if (inp.equals("connect")) {
+
+			} else if (inp.equals("disconnect")) {
+
+			}
+
+			inp = Main.getStringInput();
+		} while (!inp.equals("exit"));
+	}
+
+	public void connect() {
+		if (connectedToServer) {
+			System.out.println("Already connected to server!");
+			return;
+		}
 		try {
 			Socket sock = new Socket(this.serverIP, LobbyServer.LOBBY_PORT);
-			System.out.println("Client connected to " + this.serverIP + ":" + LobbyServer.LOBBY_PORT + "!");
 
 			this.lobbyServComm = new Communication(sock);
 
@@ -60,60 +99,29 @@ public class Client {
 				System.err.println("Could not verify server");
 				return;
 			}
-			this.lobbyServComm.sendObject(this.name);
-			this.lobbyServComm.sendObject(this.password);
 
-			boolean success = (boolean) this.lobbyServComm.recieveObject();
-			if (!success) {
-				System.err.println("Could not connect to server - invalid login");
-				return;
-			}
+			connectedToServer = true;
 
-			while (true) {
+			System.out
+					.println("Client successfully connected to " + this.serverIP + ":" + LobbyServer.LOBBY_PORT + "!");
 
-				Object obj = this.lobbyServComm.recieveObject();
-				if (obj.getClass() == String[].class) {
-					String[] lobbyNames = (String[]) obj;
-
-					System.out.println("In lobby server: ");
-					for (String s : lobbyNames) {
-						System.out.println("\t" + s);
-					}
-					System.out.println("\n");
-				} else {
-					String oppName = (String) obj;
-					System.out.println("Matched with " + oppName);
-					break;
-				}
-			}
-
-			int gamePort = (int) this.lobbyServComm.recieveObject();
-
-			this.newGame(this.serverIP, gamePort, this.name);
-
-		} catch (Exception e) {
-			throw new RuntimeException("Something went wrong with client", e);
+		} catch (IOException e) {
+			System.err.println("Something went wrong when connecting to server!");
+			e.printStackTrace();
+			connectedToServer = false;
 		}
 	}
 
-	public void clickedName(String name) {
-		this.lobbyServComm.sendObject(name);
-	}
+	public void login() {
+		String usernameHash = SHA256.bytesToHex(SHA256.hash(this.username));
+		this.lobbyServComm.sendObject(usernameHash);
+		String passwordHash = SHA256.bytesToHex(SHA256.hash(this.password));
+		this.lobbyServComm.sendObject(passwordHash);
 
-	public void newGame(String gameServerIP, int gameServerPort, String name) {
-		try {
-			Socket gameSock = new Socket(gameServerIP, gameServerPort);
-			Communication gameServComm = new Communication(gameSock);
-
-			gameServComm.sendObject(name);
-
-			if (!GameServer.INIT_GAME_STRING.equals(gameServComm.recieveObject())) {
-				System.err.println("Could not verify game server");
-				return;
-			}
-			
-		} catch (IOException e) {
-			e.printStackTrace();
+		boolean success = (boolean) this.lobbyServComm.recieveObject();
+		if (!success) {
+			System.err.println("Could not login to server - invalid login");
+			return;
 		}
 	}
 

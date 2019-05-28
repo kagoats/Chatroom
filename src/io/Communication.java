@@ -2,7 +2,9 @@ package io;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInput;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
@@ -11,12 +13,17 @@ import java.net.Socket;
 
 public class Communication {
 
-	private ObjectInputStream objin;
-	private ObjectOutputStream objout;
+	protected ObjectInput objin;
+	protected ObjectOutput objout;
 
 	public Communication() {
 		this.objin = null;
 		this.objout = null;
+	}
+
+	public Communication(ObjectInput objin, ObjectOutput objout) {
+		this.objin = objin;
+		this.objout = objout;
 	}
 
 	public Communication(InputStream in, OutputStream out) {
