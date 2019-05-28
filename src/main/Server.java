@@ -1,4 +1,4 @@
-package testing;
+package main;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -10,14 +10,17 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
-import game.board.Coordinate;
-import game.board.Direction;
-import game.board.NormalBoard;
+import encryption.SHA256;
 import io.Communication;
 import io.Serialization;
-import main.Main;
+import testing.Account;
 
-public class TestingServer {
+
+// testing logins:
+// username: akarsh	password: password1
+// username: kyle	password: password2
+
+public class Server {
 
 	private final File accountsFile = new File("accounts.ser");
 	private List<Account> REGISTERED_ACCOUNTS;
@@ -32,11 +35,11 @@ public class TestingServer {
 	public ServerSocket lobbyServerSock;
 
 	public static void main(String... args) {
-		TestingServer serv = new TestingServer();
+		Server serv = new Server();
 		serv.startServer();
 	}
 
-	public TestingServer() {
+	public Server() {
 
 		this.lobbyServer = new LobbyServer(this);
 		this.gameServers = new ArrayList<>();
@@ -48,20 +51,18 @@ public class TestingServer {
 	public void setupRegisteredAccounts() {
 		try {
 			this.REGISTERED_ACCOUNTS = (List<Account>) Serialization.loadObject(this.accountsFile);
-
 		} catch (Exception e) {
 			System.err.println("Could not load accounts from file");
-
 			this.REGISTERED_ACCOUNTS = new ArrayList<>();
 		}
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
 				try {
-					FileOutputStream fileOut = new FileOutputStream(TestingServer.this.accountsFile);
+					FileOutputStream fileOut = new FileOutputStream(Server.this.accountsFile);
 					ObjectOutputStream out = new ObjectOutputStream(fileOut);
 
-					out.writeObject(TestingServer.this.REGISTERED_ACCOUNTS);
+					out.writeObject(Server.this.REGISTERED_ACCOUNTS);
 
 					out.close();
 					fileOut.close();
@@ -103,7 +104,7 @@ public class TestingServer {
 			} else if (inp.startsWith("password")) {
 				String[] data = inp.split(" ");
 				Account acc = this.getAccount(data[1]);
-				System.out.println(acc == null ? null : acc.getPassword());
+				System.out.println(acc == null ? null : SHA256.bytesToHex(acc.getPasswordHash()));
 			}
 
 			inp = Main.getStringInput();
@@ -124,16 +125,15 @@ public class TestingServer {
 class LobbyServer extends Thread {
 
 	public static final String INIT_LOBBY_STRING = "init_lobby_99";
-	private final TestingServer server;
+	private final Server server;
 
 	private ServerSocket servSock;
 
 	public static final int LOBBY_PORT = 37852;
 
 	public final Hashtable<Account, Communication> playersInLobby;
-	public final Hashtable<Account, List<Account>> playerChallenges;
 
-	public LobbyServer(TestingServer server) {
+	public LobbyServer(Server server) {
 		this.server = server;
 		try {
 			this.servSock = new ServerSocket(LobbyServer.LOBBY_PORT);
@@ -141,7 +141,6 @@ class LobbyServer extends Thread {
 			e.printStackTrace();
 		}
 		this.playersInLobby = new Hashtable<>();
-		this.playerChallenges = new Hashtable<>();
 
 		this.setDaemon(true);
 	}
@@ -161,10 +160,11 @@ class LobbyServer extends Thread {
 				lobbyPlayerComm.sendObject(LobbyServer.INIT_LOBBY_STRING);
 
 				String name = (String) lobbyPlayerComm.recieveObject();
-				String password = (String) lobbyPlayerComm.recieveObject();
+				// String password = (String) lobbyPlayerComm.recieveObject();
+				String passwordHashHex = (String) lobbyPlayerComm.recieveObject();
 
 				Account acc = this.server.getAccount(name);
-				if (acc == null || !acc.getPassword().equals(password)) {
+				if (acc == null || !(SHA256.bytesToHex(acc.getPasswordHash()).equals(passwordHashHex))) {
 					lobbyPlayerComm.sendObject(false);
 					continue;
 				}
@@ -241,13 +241,13 @@ class LobbyServer extends Thread {
 class GameServer extends Thread {
 	public static final String INIT_GAME_STRING = "init_game_99";
 
-	public final TestingServer server;
+	public final Server server;
 
 	private ServerSocket gameServerSock = null;
 
 	private final Account[] players;
 
-	public GameServer(TestingServer server, Account... players) {
+	public GameServer(Server server, Account... players) {
 		this.server = server;
 		int port = this.assignGameServerSocketPort();
 		System.out.println("Established game server on port " + port);
@@ -274,8 +274,8 @@ class GameServer extends Thread {
 
 			long randomSeed = (long) ((Math.random() * 2 - 1) * Long.MAX_VALUE);
 
-			Communication[] clientComms = new Communication[TestingServer.NUM_PLAYERS];
-			for (int i = 0; i < TestingServer.NUM_PLAYERS; i++) {
+			Communication[] clientComms = new Communication[Server.NUM_PLAYERS];
+			for (int i = 0; i < Server.NUM_PLAYERS; i++) {
 				Socket sock = this.gameServerSock.accept();
 				clientComms[i] = new Communication(sock);
 				final Communication comm = clientComms[i];
@@ -293,13 +293,13 @@ class GameServer extends Thread {
 						try {
 							// Object prevData = null;
 							while (true) {
-								Object data = comm.recieveObject();
-								if (data != null && data.getClass() == Coordinate.class) {
-									data = NormalBoard.transformCoordinateForOtherPlayerNormalBoard((Coordinate) data);
-								}
-								if (data != null && data.getClass() == Direction.class) {
-									data = ((Direction) data).getOpposite();
-								}
+								/*
+								 * Object data = comm.recieveObject(); if (data != null && data.getClass() ==
+								 * Coordinate.class) { data =
+								 * NormalBoard.transformCoordinateForOtherPlayerNormalBoard((Coordinate) data);
+								 * } if (data != null && data.getClass() == Direction.class) { data =
+								 * ((Direction) data).getOpposite(); }
+								 */
 								// System.out.println(data);
 
 								// if (Message.HOVER.equals(data) ||
@@ -314,7 +314,7 @@ class GameServer extends Thread {
 									if (c == comm) {
 										continue;
 									}
-									c.sendObject(data);
+									// c.sendObject(data);
 								}
 								// if (comm == clientComms[0]) {
 								// System.out.println("Client 1 to 2");
