@@ -3,3 +3,11 @@ Resources used in this project:
 
 - RSA Algorithm:
 	https://simple.wikipedia.org/wiki/RSA_algorithm
+
+
+
+- SHA-256 Hash Calculator online:
+	https://www.movable-type.co.uk/scripts/sha256.html
+
+- Built in Java SHA-256 Hash:
+	https://www.baeldung.com/sha-256-hashing-java

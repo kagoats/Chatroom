@@ -1,6 +1,7 @@
-package rsa;
+package encryption;
 
 import java.math.BigInteger;
+import java.util.Random;
 
 import data.tuple.Tuple2D;
 
@@ -41,7 +42,10 @@ public class RSA {
 	}
 	
 	public static Tuple2D<BigInteger, BigInteger>generateTwoPrimes() {
-		return new Tuple2D<BigInteger, BigInteger>(null, null);
+		BigInteger p = null, q = null;
+		p = BigInteger.probablePrime(256, new Random());
+		p = BigInteger.probablePrime(256, new Random());
+		return new Tuple2D<BigInteger, BigInteger>(p, q);
 	}
 	public static BigInteger findN(BigInteger p, BigInteger q) {
 		return p.multiply(q);
@@ -52,9 +56,11 @@ public class RSA {
 	}
 	
 	public static BigInteger encrypt(BigInteger m, BigInteger n, BigInteger e) {
-		return null;
+		// c = m^e mod n
+		return m.modPow(e, n);
 	}
 	public static BigInteger decrypt(BigInteger c, BigInteger n, BigInteger d) {
-		return null;
+		// m = c^d mod n
+		return c.modPow(d, n);
 	}
 }
