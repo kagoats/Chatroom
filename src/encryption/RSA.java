@@ -14,6 +14,7 @@ public class RSA implements Serializable {
 
 	// n is the modulus for the public key and the private keys
 	private final BigInteger n;
+	
 	// e is the public key exponent
 	private final BigInteger e;
 
@@ -22,15 +23,16 @@ public class RSA implements Serializable {
 	// p and q are random very large primes
 	private final BigInteger p;
 	private final BigInteger q;
+	
 	// d is the private key exponent
 	private final BigInteger d;
 
 	public RSA(boolean generate) {
-		Tuple2D<BigInteger, BigInteger> pq = generateTwoPrimes();
-		p = pq.getA();
-		q = pq.getB();
+		//Tuple2D<BigInteger, BigInteger> pq = generateTwoPrimes();
+		p = BigInteger.probablePrime(256, new Random());
+		q = BigInteger.probablePrime(256, new Random());
 
-		n = findN(p, q);
+		n = p.multiply(q); // n = p*q
 
 		Tuple2D<BigInteger, BigInteger> ed = generatePublicPrivateKeyExponent();
 		e = ed.getA();
@@ -64,9 +66,10 @@ public class RSA implements Serializable {
 	}
 
 	public byte[] decrypt(byte[] cData) {
+		
 		return cData;
 	}
-
+	/*
 	public static Tuple2D<BigInteger, BigInteger> generateTwoPrimes() {
 		BigInteger p = null, q = null;
 		p = BigInteger.probablePrime(256, new Random());
@@ -74,8 +77,17 @@ public class RSA implements Serializable {
 		return new Tuple2D<BigInteger, BigInteger>(p, q);
 	}
 
+	
 	public static BigInteger findN(BigInteger p, BigInteger q) {
 		return p.multiply(q);
+	}
+	*/
+	
+	private static BigInteger getTotient(BigInteger n, BigInteger p, BigInteger q) {
+		BigInteger pMinusOne = p.subtract(new BigInteger("1"))
+		BigInteger qMinusOne = q.subtract(new BigInteger("1"))
+		BigInteger lcm = pMinusOne.multiply(qMinusOne).divide(pMinusOne.gcd(qMinusOne)) // lcm of p - 1 and q - 1
+		return lcm
 	}
 
 	public static Tuple2D<BigInteger, BigInteger> generatePublicPrivateKeyExponent() {
