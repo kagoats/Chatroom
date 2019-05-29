@@ -7,10 +7,14 @@ import java.io.ObjectInputStream;
 
 public class EncryptedObjectInputStream extends ObjectInputStream {
 	
-	public final RSA myRSA;
+	private RSA myRSA;
 
 	public EncryptedObjectInputStream(RSA myRSA, InputStream in) throws IOException {
 		super(in);
+		this.myRSA = myRSA;
+	}
+	
+	public void setMyRSA(RSA myRSA) {
 		this.myRSA = myRSA;
 	}
 

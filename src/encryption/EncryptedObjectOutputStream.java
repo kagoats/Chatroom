@@ -7,10 +7,13 @@ import java.io.OutputStream;
 
 public class EncryptedObjectOutputStream extends ObjectOutputStream {
 
-	public final RSA otherRSA;
+	private RSA otherRSA;
 
 	public EncryptedObjectOutputStream(RSA otherRSA, OutputStream out) throws IOException {
 		super(out);
+		this.otherRSA = otherRSA;
+	}
+	public void setOtherRSA(RSA otherRSA) {
 		this.otherRSA = otherRSA;
 	}
 

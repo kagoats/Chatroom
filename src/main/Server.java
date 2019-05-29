@@ -241,6 +241,18 @@ class LobbyServer extends Thread {
 		return this.playersInLobby.keySet().contains(acc);
 	}
 }
+class UserListener extends Thread {
+	private final Socket socket;
+	
+	public UserListener(Socket socket) {
+		this.socket = socket;
+	}
+	
+	@Override
+	public void run() {
+		
+	}
+}
 
 class GameServer extends Thread {
 	public static final String INIT_GAME_STRING = "init_game_99";
