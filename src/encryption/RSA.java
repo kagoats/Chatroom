@@ -1,11 +1,14 @@
 package encryption;
 
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.Random;
 
 import data.tuple.Tuple2D;
 
-public class RSA {
+public class RSA implements Serializable {
+
+	private static final long serialVersionUID = 932154546065193611L;
 
 	// PUBLIC KEY
 
@@ -52,8 +55,16 @@ public class RSA {
 		return encrypt(m, n, e);
 	}
 
+	public byte[] encrypt(byte[] mData) {
+		return mData;
+	}
+
 	public BigInteger decrypt(BigInteger c) {
 		return decrypt(c, n, d);
+	}
+
+	public byte[] decrypt(byte[] cData) {
+		return cData;
 	}
 
 	public static Tuple2D<BigInteger, BigInteger> generateTwoPrimes() {

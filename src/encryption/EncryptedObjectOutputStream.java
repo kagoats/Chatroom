@@ -7,16 +7,14 @@ import java.io.OutputStream;
 
 public class EncryptedObjectOutputStream extends ObjectOutputStream {
 
-	protected EncryptedObjectOutputStream() throws IOException, SecurityException {
-		super();
-	}
+	public final RSA otherRSA;
 
-	public EncryptedObjectOutputStream(OutputStream out) throws IOException {
+	public EncryptedObjectOutputStream(RSA otherRSA, OutputStream out) throws IOException {
 		super(out);
+		this.otherRSA = otherRSA;
 	}
 
 	public void writeEncryptedObject(Object obj) throws IOException {
-
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		ObjectOutputStream oos = new ObjectOutputStream(baos);
 		oos.writeObject(obj);
@@ -27,10 +25,9 @@ public class EncryptedObjectOutputStream extends ObjectOutputStream {
 
 		// objData is byte serialization of obj
 
-		// TODO encrypt objData;
+		objData = otherRSA.encrypt(objData);
 
 		writeObject(objData);
-
 	}
 
 }

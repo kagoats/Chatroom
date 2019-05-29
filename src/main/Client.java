@@ -10,7 +10,7 @@ import io.Communication;
 public class Client {
 
 	public Communication lobbyServComm;
-	
+
 	private RSA myRSA;
 	private RSA servRSA;
 
@@ -68,21 +68,48 @@ public class Client {
 				System.out.println("server [new server]");
 				System.out.println("connect");
 				System.out.println("disconnect");
+				System.out.println("login");
+				System.out.println("logout");
+				System.out.println("registeruser");
+				System.out.println("deleteuser");
 				System.out.println("listusername");
 				System.out.println("username [new username]");
 				System.out.println("password [new password]");
 				System.out.println("help");
 				System.out.println("exit");
 			} else if (inp.equals("listserver")) {
-
+				System.out.println(serverIP);
+			} else if (inp.startsWith("server")) {
+				String[] inps = inp.split(" ");
+				setServer(inps[1]);
 			} else if (inp.equals("connect")) {
-
+				connect();
 			} else if (inp.equals("disconnect")) {
-
+				disconnect();
+			} else if (inp.equals("login")) {
+				login();
+			} else if (inp.equals("logout")) {
+				logout();
+			} else if (inp.equals("registeruser")) {
+				registerUser();
+			} else if (inp.equals("deleteuser")) {
+				deleteUser();
+			} else if (inp.equals("listusername")) {
+				System.out.println(username);
+			} else if (inp.startsWith("username")) {
+				String[] inps = inp.split(" ");
+				setUsername(inps[1]);
+			} else if (inp.startsWith("password")) {
+				String[] inps = inp.split(" ");
+				setPassword(inps[1]);
 			}
 
 			inp = Main.getStringInput();
 		} while (!inp.equals("exit"));
+	}
+
+	public void setServer(String serverIP) {
+		this.serverIP = serverIP;
 	}
 
 	public void connect() {
@@ -112,7 +139,16 @@ public class Client {
 		}
 	}
 
+	public void disconnect() {
+		connectedToServer = false;
+		loggedInToServer = false;
+	}
+
 	public void login() {
+		if (!connectedToServer) {
+			System.out.println("Cannot login because not connected to server");
+			return;
+		}
 		String usernameHash = SHA256.bytesToHex(SHA256.hash(this.username));
 		this.lobbyServComm.sendObject(usernameHash);
 		String passwordHash = SHA256.bytesToHex(SHA256.hash(this.password));
@@ -123,6 +159,26 @@ public class Client {
 			System.err.println("Could not login to server - invalid login");
 			return;
 		}
+	}
+
+	public void logout() {
+
+	}
+
+	public void registerUser() {
+
+	}
+
+	public void deleteUser() {
+
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
 }

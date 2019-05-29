@@ -6,19 +6,18 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 
 public class EncryptedObjectInputStream extends ObjectInputStream {
+	
+	public final RSA myRSA;
 
-	protected EncryptedObjectInputStream() throws IOException, SecurityException {
-		super();
-	}
-
-	public EncryptedObjectInputStream(InputStream in) throws IOException {
+	public EncryptedObjectInputStream(RSA myRSA, InputStream in) throws IOException {
 		super(in);
+		this.myRSA = myRSA;
 	}
 
 	public Object readEncryptedObject() throws IOException, ClassNotFoundException {
 		byte[] objData = (byte[]) readObject();
-
-		// TODO decrypt objData;
+		
+		objData = myRSA.decrypt(objData);
 
 		ByteArrayInputStream bais = new ByteArrayInputStream(objData);
 		ObjectInputStream ois = new ObjectInputStream(bais);
