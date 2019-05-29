@@ -29,7 +29,7 @@ public class RSA implements Serializable {
 	
 	private final BigInteger totientOfN;
 
-	public RSA(boolean generate) {
+	public RSA() {
 		//Tuple2D<BigInteger, BigInteger> pq = generateTwoPrimes();
 		p = BigInteger.probablePrime(256, new Random());
 		q = BigInteger.probablePrime(256, new Random());

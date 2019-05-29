@@ -10,6 +10,7 @@ import encryption.EncryptedObjectOutputStream;
 import encryption.RSA;
 
 public class EncryptedCommunication extends Communication {
+	
 	private RSA myRSA;
 	private RSA otherRSA;
 

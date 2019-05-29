@@ -10,10 +10,11 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
+import encryption.RSA;
 import encryption.SHA256;
 import io.Communication;
+import io.EncryptedCommunication;
 import io.Serialization;
-
 
 // testing logins:
 // username: akarsh	password: password1
@@ -58,17 +59,17 @@ public class Server {
 			@Override
 			public void run() {
 				try {
-					
+
 					FileOutputStream fileOut = new FileOutputStream(Server.this.accountsFile);
 					ObjectOutputStream out = new ObjectOutputStream(fileOut);
 
 					System.out.println("Saving accounts file...");
-					
+
 					out.writeObject(Server.this.REGISTERED_ACCOUNTS);
 
 					out.close();
 					fileOut.close();
-					
+
 					System.out.println("Successfully saved accounts file!");
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -137,6 +138,9 @@ class LobbyServer extends Thread {
 
 	public final Hashtable<Account, Communication> playersInLobby;
 
+	public RSA servRSA;
+	public RSA servPublicRSA;
+
 	public LobbyServer(Server server) {
 		this.server = server;
 		try {
@@ -147,6 +151,9 @@ class LobbyServer extends Thread {
 		this.playersInLobby = new Hashtable<>();
 
 		this.setDaemon(true);
+
+		servRSA = new RSA();
+		servPublicRSA = servRSA.getPublicCopy();
 	}
 
 	public ServerSocket getServerSock() {
@@ -241,16 +248,35 @@ class LobbyServer extends Thread {
 		return this.playersInLobby.keySet().contains(acc);
 	}
 }
+
 class UserListener extends Thread {
+
+	private final LobbyServer lobbyServer;
 	private final Socket socket;
-	
-	public UserListener(Socket socket) {
+
+	private final EncryptedCommunication encryptComm;
+
+	public UserListener(Socket socket, LobbyServer lobbyServer) {
 		this.socket = socket;
+		this.lobbyServer = lobbyServer;
+
+		try {
+			encryptComm = new EncryptedCommunication(lobbyServer.servRSA, null, this.socket);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
 	}
-	
+
 	@Override
 	public void run() {
-		
+
+		encryptComm.sendObject(lobbyServer.servPublicRSA);
+		RSA otherPublicRSA = (RSA) encryptComm.recieveObject();
+		encryptComm.setOtherRSA(otherPublicRSA);
+
+		// now only use encrypted objects
+
 	}
 }
 
