@@ -26,6 +26,8 @@ public class RSA implements Serializable {
 	
 	// d is the private key exponent
 	private final BigInteger d;
+	
+	private final BigInteger totientOfN;
 
 	public RSA(boolean generate) {
 		//Tuple2D<BigInteger, BigInteger> pq = generateTwoPrimes();
@@ -37,6 +39,8 @@ public class RSA implements Serializable {
 		Tuple2D<BigInteger, BigInteger> ed = generatePublicPrivateKeyExponent();
 		e = ed.getA();
 		d = ed.getB();
+		
+		totientOfN = getTotient(n, p, q);
 	}
 
 	public RSA(BigInteger n, BigInteger e) {
